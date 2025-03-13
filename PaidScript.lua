@@ -346,27 +346,10 @@ local function startFloating(speaker)
         end)
     end
 end
+         -- Disable the print function by overriding it with a no-op
+print = function() end
 
-local function stopFloating()
-    if not toggleState then return end  -- If it's already stopped, do nothing
-
-    toggleState = false  -- Set the toggle to inactive
-
-    if floatingPart then
-        floatingPart:Destroy()  -- Destroy the floating part
-        floatingPart = nil
-    end
-
-    print("Floating stopped.")
-end
-
--- Command to toggle the floating on/off
-addcmd('togglefloat', {'float'}, function(args, speaker)
-    if toggleState then
-        stopFloating()  -- Stop the floating
-    else
-        startFloating(speaker)  -- Start the floating
-    end
-end)
+-- Example usage
+print("This will not be printed")
    end,
 })
