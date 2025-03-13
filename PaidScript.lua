@@ -269,3 +269,104 @@ elseif Errored and not Success then
 end
    end,
 })
+
+local Toggle = Tab:CreateToggle({
+   Name = "Fly",
+   CurrentValue = false,
+   Flag = "makes you fly", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+   local speaker = game:GetService("Players").LocalPlayer
+
+
+CFspeed = 50
+speaker.Character:FindFirstChildOfClass('Humanoid').PlatformStand = true
+local Head = speaker.Character:WaitForChild("Head")
+Head.Anchored = true
+if CFloop then CFloop:Disconnect() end
+CFloop = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
+    local moveDirection = speaker.Character:FindFirstChildOfClass('Humanoid').MoveDirection * (CFspeed * deltaTime)
+    local headCFrame = Head.CFrame
+    local cameraCFrame = workspace.CurrentCamera.CFrame
+    local cameraOffset = headCFrame:ToObjectSpace(cameraCFrame).Position
+    cameraCFrame = cameraCFrame * CFrame.new(-cameraOffset.X, -cameraOffset.Y, -cameraOffset.Z + 1)
+    local cameraPosition = cameraCFrame.Position
+    local headPosition = headCFrame.Position
+
+    local objectSpaceVelocity = CFrame.new(cameraPosition, Vector3.new(headPosition.X, cameraPosition.Y, headPosition.Z)):VectorToObjectSpace(moveDirection)
+    Head.CFrame = CFrame.new(headPosition) * (cameraCFrame - cameraPosition) * CFrame.new(objectSpaceVelocity)
+end)
+         local toggleState = false  -- Track if the floating is active or not
+local floatingPart = nil   -- Store the floating part if active
+
+local function startFloating(speaker)
+    if toggleState then return end  -- If it's already active, do nothing
+
+    toggleState = true  -- Set the toggle to active
+
+    local pchar = speaker.Character
+    local floatName = "FloatingPart"
+
+    -- Only start if the player exists and no floating part exists already
+    if pchar and not pchar:FindFirstChild(floatName) then
+        task.spawn(function()
+            -- Create the floating part
+            floatingPart = Instance.new('Part')
+            floatingPart.Name = floatName
+            floatingPart.Parent = pchar
+            floatingPart.Transparency = 1
+            floatingPart.Size = Vector3.new(2, 0.2, 1.5)
+            floatingPart.Anchored = true
+            floatingPart.CFrame = pchar:WaitForChild("HumanoidRootPart").CFrame * CFrame.new(0, -3, 0)
+
+            -- Key controls (Example: Use Q and E to control height)
+            local qUp, eUp, qDown, eDown
+            qUp = IYMouse.KeyUp:Connect(function(KEY)
+                if KEY == 'q' then
+                    floatingPart.CFrame = floatingPart.CFrame * CFrame.new(0, 0.5, 0)
+                end
+            end)
+
+            eUp = IYMouse.KeyUp:Connect(function(KEY)
+                if KEY == 'e' then
+                    floatingPart.CFrame = floatingPart.CFrame * CFrame.new(0, -0.5, 0)
+                end
+            end)
+
+            -- Update position on every frame
+            local function FloatPadLoop()
+                if pchar:FindFirstChild(floatName) then
+                    floatingPart.CFrame = pchar.HumanoidRootPart.CFrame * CFrame.new(0, -3, 0)
+                else
+                    stopFloating()
+                end
+            end
+
+            -- Run the floating update loop
+            local updateLoop = game:GetService("RunService").Heartbeat:Connect(FloatPadLoop)
+        end)
+    end
+end
+
+local function stopFloating()
+    if not toggleState then return end  -- If it's already stopped, do nothing
+
+    toggleState = false  -- Set the toggle to inactive
+
+    if floatingPart then
+        floatingPart:Destroy()  -- Destroy the floating part
+        floatingPart = nil
+    end
+
+    print("Floating stopped.")
+end
+
+-- Command to toggle the floating on/off
+addcmd('togglefloat', {'float'}, function(args, speaker)
+    if toggleState then
+        stopFloating()  -- Stop the floating
+    else
+        startFloating(speaker)  -- Start the floating
+    end
+end)
+   end,
+})
