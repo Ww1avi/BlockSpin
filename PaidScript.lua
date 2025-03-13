@@ -346,10 +346,12 @@ local function startFloating(speaker)
         end)
     end
 end
-         -- Disable the print function by overriding it with a no-op
-print = function() end
 
--- Example usage
-print("This will not be printed")
+if CFloop then
+    CFloop:Disconnect()
+    speaker.Character:FindFirstChildOfClass('Humanoid').PlatformStand = false
+    local Head = speaker.Character:WaitForChild("Head")
+    Head.Anchored = false
+end
    end,
 })
